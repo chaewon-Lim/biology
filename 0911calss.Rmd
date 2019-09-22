@@ -1,0 +1,141 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+### 1. programing
+
+### 2. conditional expression
+
+```{r}
+a <- 'apple'
+a == 'apple'
+b = 'banana'
+b == 'banana'
+
+if (a==b) {
+  print('this is an apple')
+} else{
+  print('nah. Not an apple')
+}
+
+ifelse(a == b, 'this is an apple', 'no')
+
+if(a == 'banana'){
+  print('this is a pear')
+} else{
+  print('this is somthing else')
+}
+
+d = c('apple', 'banana', 'apple', 'pear')
+
+ifelse(d == 'apple', 'Right!', 'Nah')
+
+ifelse(d$PatientSex %in% c('M', 'F'), 'Reported', 'Unknown')
+
+ifelse(d$PatientSex %in% c('M', 'F'), 'Reported', 'Unknown')
+
+d$PatientSex %in% c('M', 'F')
+
+grepl('apple', a)
+
+grepl('appl', a)
+
+a == 'appl'
+
+
+
+
+
+```
+
+### 3. Function
+
+`mean` `sum` `sort`
+
+
+```{r}
+
+fahrenheit_to_celsius <- function(temp_F) {
+  temp_C <- (temp_F - 32) * 5 / 9
+  return(temp_C)
+}
+
+View(mean)
+
+fahrenheit_to_celsius(80)
+
+for (i in c(80, 90, 100, 2000)){
+  print(fahrenheit_to_celsius(i))
+}
+
+a <- fahrenheit_to_celsius(80)
+
+a
+
+install.packages('ggplot2')
+
+library(ggplot2)
+
+ggplot2::geom_abline()
+
+base::mean()
+
+library(dplyr)
+
+install.packages('dplyr')
+
+?stats::filter()
+
+?filter
+
+
+
+
+
+```
+# 20190916
+
+```{r}
+a <- c(1,2,3,4)
+ifelse(a > 0,1/a,"NA")
+
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
