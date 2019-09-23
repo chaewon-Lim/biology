@@ -1,0 +1,42 @@
+---
+title: "Quiz"
+output: html_notebook
+---
+
+```{r}
+wget ftp://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_human/release_31/gencode.v31.basic.annotation.gtf.gz
+
+library(tidyverse, quietly = T)
+library(readr, quietly = T)
+
+cols = c('chrom', 'source', 'feature_type', 'start', 'end', 'score', 'strand', 'phase', 'info')
+
+d = read_delim('gencode.v31.basic.annotation.gtf.gz', 
+               delim='\t', skip = 5, 
+               progress = F,
+               col_names = cols)
+```
+
+**1. Please calculate the number of genes per chromosome.**
+
+```{r}
+d1 <- filter(d, feature_type == 'gene')
+d2 <- d1 %>% group_by(chrom) %>% count(feature_type)
+```
+
+**2. Please compare the number of genes between autosomal and sex chromosome (Mean, Median).**
+
+```{r}
+d3 <- d1 %>% mutate(type=ifelse(is.na(as.numeric(gsub('chr','',d1$chrom))),'sex_chromosome','autosome'))
+
+d3 %>% group_by(type) %>% summarize(mean=mean(d2$n),median=median(d2$n))
+```
+
+**3. Please divide the genes into groups ‘protein coding’ and ‘long noncoding’, and then compare the number of genes in each chromosomes within groups.**
+
+```{r}
+d4 <-strsplit(d1$info,split="; gene_")
+
+d1 %>% mutate(group = do.call(rbind.data.frame, strsplit(d1$info,split="; gene_"))[,2]) %>% filter(group == 'type "protein_coding"' | group == 'type "lncRNA"') %>% group_by(chrom,group) %>% count(feature_type)
+```
+
