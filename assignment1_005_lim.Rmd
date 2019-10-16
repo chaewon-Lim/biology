@@ -1,0 +1,110 @@
+---
+title: "Assignment_1017"
+output: html_notebook
+---
+
+## Dataset
+
+```{r}
+library(tidyverse)
+library(readr)
+
+scn2a <- read.table("table.scn2a.vep_20190916.filtered.txt", sep='\t', header = T)
+
+```
+
+Visualization할 주제는 scn2a에서 SIFT과 protein position에 따른 exon과 polyphen이다. 
+
+## Visualization
+
+먼저 `sapply`를 통해 각 열의 클래스를 확인하였다.
+
+```{r}
+sapply(scn2a,class)
+```
+
+클래스가 charater인 exon과 protein position의 plot을 만들었을 때 축에 각 숫자들이 모두 쓰여있어 보기 어려울듯해서 두 칼럼 모두 numeric으로 수정하였다
+
+```{r}
+Protein_position <- as.factor(scn2a$Protein_position)
+protein_position <- as.numeric(Protein_position)
+scn2a_n <- cbind(scn2a,protein_position)
+
+EXON <- gsub("/27", "", scn2a$EXON)
+exon <- as.numeric(EXON)
+scn2a_nnnn <- cbind(scn2a_nnn,exon)
+
+```
+
+그리고 SIFT는 deleterious, tolerated와 SIFT score를 구분하여 새로운 column을 만들었다.
+(deleterious의 SIFT score는 0.5보자 작거나 같 이고 tolerated의 SIFT score는 0.5보다 크거나 같다)
+
+```{r}
+scn2a_2 <- scn2a_nnnn %>% arrange(SIFT)
+scn2a_2t <- scn2a_2 %>% tail(355)
+sift <- substr(scn2a_2t$SIFT,1,9)
+SIFT_score <- as.numeric(gsub("[^0-9+.]", "",scn2a_2t$SIFT))
+scn2a_2tt <- cbind(scn2a_2t,sift,SIFT_score)
+scn2a_2t <- scn2a_2 %>% head(886)
+scn2a_2d <- scn2a_2t %>% tail(402)
+sift <- substr(scn2a_2d$SIFT,1,11)
+SIFT_score <- as.numeric(gsub("[^0-9+.]", "",scn2a_2d$SIFT))
+scn2a_2dd <- cbind(scn2a_2d,sift,SIFT_score)
+scn2a_3 <- rbind(scn2a_2tt,scn2a_2dd )
+```
+
+polyphen은 score를 제외한 character로 새로운 column을 만들었다.
+
+```{r}
+scn2a_4 <- scn2a_3 %>% arrange(PolyPhen)
+scn2a_4b <- scn2a_4 %>% head(353)
+polyphen <- substr(scn2a_4b$PolyPhen,1,6)
+scn2a_4bb <- cbind(scn2a_4b,polyphen)
+scn2a_4p <- scn2a_4 %>% tail(404)
+polyphen <- substr(scn2a_4p$PolyPhen,1,17)
+scn2a_4pp <- cbind(scn2a_4p,polyphen)
+
+scn2a_f <- rbind(scn2a_4bb,scn2a_4pp )
+```
+
+
+scatter plot을 사용하여 Visualization 초안을 만들었다
+
+*1. SIFT과 protein position에 따른 exon*
+
+```{r}
+scn2a_f %>% ggplot(aes(x=SIFT_score, y=protein_position))+  geom_point(aes(color = exon)) + facet_grid(~sift)
+```
+
+그래프를 확인해보니 정확한 position을 한눈에 보기 어려워 각 축의 표현범위를 수정하고 deleterious, tolerated의 범위가 다른점을 고려하여 cowplot을 만들어 plot을 완성하였다.
+
+```{r}
+plot_del_exon <- filter(scn2a_f,sift == "deleterious") %>% ggplot(aes(x=SIFT_score, y=protein_position))+  geom_point(size = 4, aes(color = exon)) + scale_y_continuous(breaks = c(100,200,300,400,500,600,700,800,900)) + labs(x='SIFT score',y = 'Protein position')
+
+plot_tol_exon <- filter(scn2a_f,sift == "tolerated") %>% ggplot(aes(x=SIFT_score, y=protein_position))+  geom_point(size = 4, aes(color = exon)) + scale_y_continuous(breaks = c(100,200,300,400,500,600,700,800,900)) + labs(x='SIFT score',y = 'Protein position')
+
+plot_grid(plot_del_exon,  plot_tol_exon, labels = c('deleterious','tolerated'), label_x = 0.2, ncol = 2)
+
+```
+
+*2. SIFT과 protein position에 따른  polyphen*
+
+SIFT과 protein position에 따른 exon과 마찬기지로 cowplot을 만들어 plot을 완성하였다.
+
+```{r}
+plot_del_pp <- filter(scn2a_f,sift == "deleterious") %>% ggplot(aes(x=SIFT_score, y=protein_position))+  geom_point(size = 2, aes(color = polyphen)) + scale_y_continuous(breaks = c(100,200,300,400,500,600,700,800,900,1000)) + labs(x='SIFT score',y = 'Protein position')
+
+plot_tol_pp <- filter(scn2a_f,sift == "tolerated") %>% ggplot(aes(x=SIFT_score, y=protein_position))+  geom_point(size = 2, aes(color = polyphen)) + scale_y_continuous(breaks = c(100,200,300,400,500,600,700,800,900,1000)) + labs(x='SIFT score',y = 'Protein position') + theme(legend.position = "none")
+
+
+
+plot_grid(plot_del_pp,  plot_tol_pp, labels = c('deleterious','tolerated'), label_x = 0.1, ncol = 2)
+```
+
+## Conclusion
+
+1번 plot에서는 별다른 뚜렷한 특징을 찾기 어려웠다. exon이 전체 SIFT_score에 고르게 분포되어 있고 protein_position과의 관계도 일정해보였다. 
+
+
+2번 plot에서는 특징을 많이 찾을 수 있었다. SIFT_score이 0에 가까워질수록 파란점(probably_damaging)이 많아지는것으로 보아 SIFT_score이 낮을수록 더 유해하다는것을 알 수 있었다. 또한 빨간점(benign)은 protein_position이 600-750과 0-100에 많이 분포있고 반대로 파란점(probably_damaging)은 750-900과 100-450 부분에 많이 분포하고 있는것으로 보아 protein_position에 따라서도 유해의 정도가 다름을 알 수 있었다.
+
