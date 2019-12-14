@@ -1,0 +1,59 @@
+---
+title: "Assignment2_12/16"
+output: html_notebook
+---
+
+중간과제를 제출하고 다른학우들의 피드백을 바탕으로 시각화자료를 수정해보았다
+
+### 처음 제출했던 Plot
+
+```{r}
+plot_del_pp <- filter(scn2a_f,sift == "deleterious") %>% 
+               ggplot(aes(x=SIFT_score, y=protein_position))  +
+               geom_point(size = 2, aes(color = polyphen))  +
+               scale_y_continuous(breaks = c(100,200,300,400,500,600,700,800,900,1000)) + 
+               labs(x='SIFT score',y = 'Protein position')
+
+
+
+plot_tol_pp <- filter(scn2a_f,sift == "tolerated") %>% 
+               ggplot(aes(x=SIFT_score, y=protein_position)) +
+               geom_point(size = 2, aes(color = polyphen)) +
+               scale_y_continuous(breaks = c(100,200,300,400,500,600,700,800,900,1000)) +
+               labs(x='SIFT score',y = 'Protein position') + theme(legend.position = "none")
+
+
+
+plot_grid(plot_del_pp,  plot_tol_pp, labels = c('deleterious','tolerated'), label_x = 0.1, ncol = 2)
+```
+
+### 수정후의 Plot
+```{r}
+plot_del_ppx <- filter(scn2a_f,sift == "deleterious") %>% 
+                ggplot(aes(x=SIFT_score, y=protein_position)) +
+                geom_point(size = 3, alpha = 0.4, aes(color = polyphen))  +
+                scale_y_continuous(breaks = c(100,200,300,400,500,600,700,800,900,1000)) +
+                labs(x='SIFT score',y = 'Protein position') + theme(legend.position = "left") +
+                scale_colour_hue(name = "Polyphen", breaks = c("benign", "possibly_damaging", "probably_damaging"), labels = c("Benign", "Possibly Damaging", "Probably Damaging")) 
+
+plot_tol_ppx <- filter(scn2a_f,sift == "tolerated") %>%
+                ggplot(aes(x=SIFT_score, y=protein_position)) +
+                geom_point(size = 3, alpha = 0.4, aes(color = polyphen)) +
+                scale_y_continuous(breaks = c(100,200,300,400,500,600,700,800,900,1000)) +
+                labs(x='SIFT score',y = '') + theme(legend.position = "none", axis.text.y=element_blank())
+
+plot_grid(plot_del_ppx,  plot_tol_ppx, labels = c('deleterious','tolerated'), label_x = 0.43, ncol = 2, rel_widths = c(1.5, 1))
+```
+
+### 수정 과정
+
+ 1) legend가 두 plot 사이에 있는 것이 시선을 분산시키므로 `theme(legend.position = "left")`을 사용하여 legend을 왼쪽으로 옮겼다. deleterious plot과 tolerated plot를 비교했을때 SIFT score의 범위가 다름을 나타내고 구분짓고 싶어서 두 plot을 붙이지는 않았다 대신 두 그래프를 비교하기 더 쉽도록 `labs(y = '')` 와 `theme(axis.text.y=element_blank())`을 사용하여 tolerated의 y축 눈금과 label을 제거했다. 
+
+ 2) legend에서 각 점이 무엇을 뜻하는지 표현할 때 dataset에서 쓴 표현을 그대로 쓰는 바람에 _가 남아 있어서 제목과 내용을 `scale_colour_hue`를 사용하여 수정하였다.
+
+
+ 3) plot에 겹치는 point가 많아 각 점에서 얼마나 겹쳤는지 알기 힘들고 다른 color의 point를 가려 data의 분포값이 일부 분분명하게 보여져 alpha값을 조정하여 겹쳐질수록 point 색이 진해져 알아보는 것이 더 수월하도록 수정하였다. 
+
+
+ 4) deleterious plot의 x축(SIFT score)부분이 숫자 size에 비해 간격이 좁아 가독성이 떨어지는 부분을 cowplot 코드를 작성 할 때 width설정(`rel_widths =`)해서 deleterious plot의 크키를 키우고 x축값의 가독성도 높였다. 
+
